@@ -16,8 +16,8 @@ pipeline {
         DOCKER_REPO      = 'docker-releases'
 
         GROUP_ID         = 'com.countrychicken'
-        VERSION          = ''
-        JAR_NAME         = ''
+        VERSION          = 'env.VERSION'
+        JAR_NAME         = 'env.JAR_NAME'
     }
 
     stages {
@@ -32,17 +32,17 @@ pipeline {
         stage('Set Version') {
             steps {
                 script {
-                    VERSION = sh(
+                    env.VERSION = sh(
                         script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout",
                         returnStdout: true
                     ).trim()
 
-                    if (!VERSION) {
+                    if (!env.VERSION) {
                         error "❌ Version not found from pom.xml"
                     }
 
-                    JAR_NAME = "${APP_NAME}-${VERSION}.jar"
-                    echo "✅ Version: ${VERSION}"
+                    env.JAR_NAME = "${APP_NAME}-${env.VERSION}.jar"
+                    echo "✅ Version: ${env.VERSION}"
                 }
             }
         }
@@ -60,14 +60,14 @@ pipeline {
                     protocol: 'http',
                     nexusUrl: "${NEXUS_MAVEN_URL}",
                     groupId: "${GROUP_ID}",
-                    version: "${VERSION}",
+                    version: "${env.VERSION}",
                     repository: "${MAVEN_REPO}",
                     credentialsId: 'nexus-credentials',
                     artifacts: [
                         [
                             artifactId: "${APP_NAME}",
                             classifier: '',
-                            file: "target/${JAR_NAME}",
+                            file: "target/${env.JAR_NAME}",
                             type: 'jar'
                         ]
                     ]
@@ -79,7 +79,7 @@ pipeline {
             steps {
                 sh """
                 docker build \
-                  -t ${NEXUS_DOCKER_URL}/${DOCKER_REPO}/${APP_NAME}:${VERSION} .
+                  -t ${NEXUS_DOCKER_URL}/${DOCKER_REPO}/${APP_NAME}:${env.VERSION} .
                 """
             }
         }
@@ -93,9 +93,9 @@ pipeline {
                 )]) {
                     sh """
 
-                    echo "$DOCKER_PASS" | docker login ${NEXUS_DOCKER_URL} -u "$DOCKER_USER" --password-stdin
+                    echo "\$DOCKER_PASS" | docker login ${NEXUS_DOCKER_URL} -u "\$DOCKER_USER" --password-stdin
 
-                    docker push ${NEXUS_DOCKER_URL}/${DOCKER_REPO}/${APP_NAME}:${VERSION}
+                    docker push ${NEXUS_DOCKER_URL}/${DOCKER_REPO}/${APP_NAME}:${env.VERSION}
 
                     docker logout ${NEXUS_DOCKER_URL}
                     """
