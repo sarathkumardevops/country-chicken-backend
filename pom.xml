@@ -122,5 +122,10 @@
             </properties>
         </profile>
     </profiles>
-
+<distributionManagement>
+  <repository>
+    <id>maven-releases</id>
+    <url>http://3.86.208.236:8081/repository/maven-releases/</url>
+  </repository>
+</distributionManagement>
 </project>
