@@ -16,8 +16,8 @@ pipeline {
         DOCKER_REPO      = 'docker-releases'
 
         GROUP_ID         = 'com.countrychicken'
-        VERSION          = 'env.VERSION'
-        JAR_NAME         = 'env.JAR_NAME'
+        VERSION          = ''
+        JAR_NAME         = ''
     }
 
     stages {
